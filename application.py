@@ -1,14 +1,53 @@
+import flask
+import boto.sqs
+from boto.sqs.message import Message
+from flask import g
+
+import watcher
+
+
 __copyright__ = 'Copyright (c) 2014. Physion LLC. All rights reserved.'
 
-import flask
+# Configuration
+COUCH_HOST = 'https://ovation-io-dev.cloudant.com'
+COUCH_USER = 'couch-user'
+COUCH_PASSWORD = 'password'
+DB_UPDATES_SQS_QUEUE = 'dev_db_updates'
+REGION = 'us-east-1' # Get the region we're running in
+
 
 # AWS EB requires the name application
 application = app = flask.Flask(__name__)
+app.config.from_object(__name__)
+
+def get_queue():
+    queue = getattr(g, '_queue', None)
+    if queue is None:
+        sqs_connection = boto.sqs.connect_to_region(app.config['REGION'])
+        if len(sqs_connection.get_all_queues(prefix=app.config['DB_UPDATES_SQS_QUEUE'])) == 0:
+            sqs_connection.create_queue(app.config['DB_UPDATES_SQS_QUEUE'])
+
+        queue = g._queue = sqs_connection.get_queue(app.config['DB_UPDATES_SQS_QUEUE'])
+    return queue
+
 
 @app.route('/')
 def index():
-    # use request here
-    return "Hello world!"
+    # You can use the context global `request` here
+    return "Couch _db_updates: {} updates in queue".format(get_queue().count())
+
+
+@app.route('/start', methods=['POST'])
+def start():
+
+    def update_handler(update):
+        m = Message()
+        m.set_body(update)
+        get_queue().write(m)
+
+    updates = watcher.Watcher()
+    updates.start(target=update_handler)
+
 
 if __name__ == '__main__':
     app.run(debug=True)

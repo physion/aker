@@ -7,6 +7,8 @@ import cloudant
 __copyright__ = 'Copyright (c) 2014. Physion LLC. All rights reserved.'
 __version__ = '1.0.0'
 
+class WatcherException(Exception):
+    pass
 
 class Watcher:
     """
@@ -14,8 +16,8 @@ class Watcher:
     """
 
     # noinspection PyProtectedMember
-    def __init__(self, host='http://localhost:5995', username=None, password=None, session_auth=True):
-        self.account = cloudant.Account(host, async=False)
+    def __init__(self, host='http://localhost:5995', username=None, password=None, session_auth=True, account_factory=cloudant.Account):
+        self.account = account_factory(host, async=False)
 
         if username is None:
             username = os.environ.get('COUCH_USER', '')
@@ -42,24 +44,25 @@ class Watcher:
         """
 
         if self.thread is not None:
-            raise Exception("Cannot start a Watcher more than once")
+            raise WatcherException("Cannot start a Watcher more than once")
 
         event = self.evt
 
-        def callback():
+        def watch_updates():
             r = self.account.get('_db_updates', params={'feed': 'continuous'}, stream=True)
             r.raise_for_status()
             for update in r.iter_lines():
-                if event.is_set():
-                    break
-
                 if target is not None:
                     target(update.decode('utf-8'))
 
-            event.clear()
+                if event.is_set():
+                    break
 
-        self.thread = threading.Thread(target=callback, name='couch-watcher')
+        self.thread = threading.Thread(target=watch_updates)
         self.thread.start()
 
-    def stop(self):
+    def stop(self, timeout_seconds=None):
         self.evt.set()
+        if timeout_seconds is not None:
+            self.thread.join(timeout_seconds)
+
