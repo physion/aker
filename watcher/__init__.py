@@ -9,6 +9,10 @@ __version__ = '1.0.0'
 
 
 class Watcher:
+    """
+    Watches a CouchDB _db_updates feed
+    """
+
     # noinspection PyProtectedMember
     def __init__(self, host='http://localhost:5995', username=None, password=None, session_auth=True):
         self.account = cloudant.Account(host, async=False)

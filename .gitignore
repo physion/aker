@@ -55,3 +55,5 @@ docs/_build/
 .elasticbeanstalk/
 
 .idea
+
+.ipynb_checkpoints/scratch_pad-checkpoint.ipynb
