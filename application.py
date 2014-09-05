@@ -1,3 +1,4 @@
+import cloudant
 import flask
 import boto.sqs
 from boto.sqs.message import Message
@@ -15,6 +16,7 @@ COUCH_PASSWORD = 'password'
 DB_UPDATES_SQS_QUEUE = 'dev_db_updates'
 REGION = 'us-east-1' # Get the region we're running in
 
+_watcher_account_factory = cloudant.Account
 
 # AWS EB requires the name application
 application = app = flask.Flask(__name__)
@@ -24,10 +26,7 @@ def get_queue():
     queue = getattr(g, '_queue', None)
     if queue is None:
         sqs_connection = boto.sqs.connect_to_region(app.config['REGION'])
-        if len(sqs_connection.get_all_queues(prefix=app.config['DB_UPDATES_SQS_QUEUE'])) == 0:
-            sqs_connection.create_queue(app.config['DB_UPDATES_SQS_QUEUE'])
-
-        queue = g._queue = sqs_connection.get_queue(app.config['DB_UPDATES_SQS_QUEUE'])
+        queue = g._queue = sqs_connection.get_queue(app.config['DB_UPDATES_SQS_QUEUE']) or sqs_connection.create_queue(app.config['DB_UPDATES_SQS_QUEUE'])
     return queue
 
 
@@ -45,7 +44,7 @@ def start():
         m.set_body(update)
         get_queue().write(m)
 
-    updates = watcher.Watcher()
+    updates = watcher.Watcher() #TODO parameters
     updates.start(target=update_handler)
 
 

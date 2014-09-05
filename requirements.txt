@@ -8,4 +8,3 @@ cloudant==0.5.9
 itsdangerous==0.24
 requests==2.4.0
 requests-futures==0.9.4
-mock==1.0.1

@@ -1,8 +1,8 @@
 import os
 import threading
 import unittest
+from unittest.mock import MagicMock
 
-from mock import MagicMock
 import requests
 
 from watcher import Watcher, WatcherException
