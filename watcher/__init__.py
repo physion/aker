@@ -16,7 +16,9 @@ class Watcher:
     """
 
     # noinspection PyProtectedMember
-    def __init__(self, host='http://localhost:5995', username=None, password=None, session_auth=True, account_factory=cloudant.Account):
+    def __init__(self, host='http://localhost:5995', username=None, password=None, account_factory=cloudant.Account):
+
+
         self.account = account_factory(host, async=False)
 
         if username is None:
@@ -25,11 +27,11 @@ class Watcher:
         if password is None:
             password = os.environ.get('COUCH_PASSWORD', '')
 
-        if session_auth:
+        if host.startswith("http://localhost"):
+            self.account._session.auth = (username, password)
+        else:
             r = self.account.login(username, password)
             r.raise_for_status()
-        else:
-            self.account._session.auth = (username, password)
 
         self.evt = threading.Event()
         self.thread = None

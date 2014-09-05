@@ -32,7 +32,7 @@ class WatcherTest(unittest.TestCase):
         self.account.login.side_effect = requests.HTTPError(response=response)
 
         self.assertRaises(requests.HTTPError,
-                          lambda: Watcher('ovation-io-dev','foo', 'bar', account_factory=self.account_factory))
+                          lambda: Watcher('https://aker.cloudant.com', 'foo', 'bar', account_factory=self.account_factory))
 
     def test_should_log_in(self):
         Watcher('http://myhost.com', 'username', 'password', account_factory=self.account_factory)
@@ -43,20 +43,15 @@ class WatcherTest(unittest.TestCase):
     def test_should_support_request_auth(self):
         self.account._session = MagicMock()
 
-        Watcher('http://myhost.com',
-                username='username',
-                password='password',
-                account_factory=self.account_factory,
-                session_auth=False)
+        Watcher('http://localhost', username='username', password='password', account_factory=self.account_factory)
 
         self.assertEqual(('username', 'password'), self.account._session.auth)
 
     def test_should_throw_exception_starting_more_than_once(self):
 
         watcher = Watcher('http://localhost:5995',
-                          username=os.environ['COUCH_USER'],
-                          password=os.environ['COUCH_PASSWORD'],
-                          session_auth=False,
+                          username='foo',
+                          password='foopass',
                           account_factory=self.account_factory)
 
         watcher.start()
@@ -70,7 +65,6 @@ class WatcherTest(unittest.TestCase):
         watcher = Watcher('http://localhost:5995',
                           username=os.environ['COUCH_USER'],
                           password=os.environ['COUCH_PASSWORD'],
-                          session_auth=False,
                           account_factory=self.account_factory)
 
         evt = threading.Event()

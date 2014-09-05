@@ -9,6 +9,15 @@ __copyright__ = 'Copyright (c) 2014. Physion LLC. All rights reserved.'
 
 class FlaskTestCase(unittest.TestCase):
 
+    def setUp(self):
+        app.config['TESTING'] = True
+        self.app = app.test_client()
+
+    def tearDown(self):
+        pass
+
+
+class TestApp(FlaskTestCase):
     def _patch_sqs(self):
         self.sqs_connect_patch = patch('boto.sqs.connect_to_region')
         self.sqs_connect = self.sqs_connect_patch.start()
@@ -24,13 +33,14 @@ class FlaskTestCase(unittest.TestCase):
         self.cloudant_account = self.cloudant_account_factory.return_value
 
     def setUp(self):
-        app.config['TESTING'] = True
-        self.app = app.test_client()
+        super().setUp()
 
         self._patch_sqs()
         self._patch_cloudant()
 
     def tearDown(self):
+        super().tearDown()
+
         self.sqs_connect_patch.stop()
         self.cloudant_patch.stop()
 
@@ -39,6 +49,3 @@ class FlaskTestCase(unittest.TestCase):
         rv = self.app.get('/')
         print(rv.data.decode('utf-8'))
         self.assertEqual(200, rv._status_code)
-
-if __name__ == '__main__':
-    unittest.main()

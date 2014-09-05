@@ -44,7 +44,7 @@ def start():
         m.set_body(update)
         get_queue().write(m)
 
-    updates = watcher.Watcher() #TODO parameters
+    updates = watcher.Watcher()  #TODO parameters
     updates.start(target=update_handler)
 
 
