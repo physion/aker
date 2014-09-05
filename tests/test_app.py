@@ -1,3 +1,4 @@
+import json
 from unittest.mock import patch, MagicMock
 
 from aker.testing import FlaskTestCase
@@ -34,7 +35,16 @@ class TestApp(FlaskTestCase):
         self.cloudant_patch.stop()
 
     def test_index(self):
-        self.sqs_queue.count.return_value = 1
+        self.sqs_queue.count.return_value = 0
         rv = self.app.get('/')
-        print(rv.data.decode('utf-8'))
         self.assertEqual(200, rv._status_code)
+
+    def test_status_has_queue_count(self):
+        queue_size = 5
+        self.sqs_queue.count.return_value = queue_size
+
+        rv = self.app.get('/status')
+
+        self.assertDictEqual(json.loads(rv.data.decode('utf-8')), {'queue_length' : queue_size})
+
+    def test_start_starts_watcher(self):

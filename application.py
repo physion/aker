@@ -16,7 +16,6 @@ COUCH_PASSWORD = 'password'
 DB_UPDATES_SQS_QUEUE = 'dev_db_updates'
 REGION = 'us-east-1' # Get the region we're running in
 
-_watcher_account_factory = cloudant.Account
 
 # AWS EB requires the name application
 application = app = flask.Flask(__name__)
@@ -30,7 +29,7 @@ def get_queue():
     return queue
 
 
-@app.route('/')
+@app.route('/', methods=['HEAD', 'GET'])
 def index():
     # You can use the context global `request` here
     return "Couch _db_updates: {} updates in queue".format(get_queue().count())
@@ -44,9 +43,20 @@ def start():
         m.set_body(update)
         get_queue().write(m)
 
-    updates = aker.Watcher()  #TODO parameters
+    app.g
+    updates = aker.Watcher(host=COUCH_HOST,
+                           username=COUCH_USER,
+                           password=COUCH_PASSWORD)  #TODO parameters
+
     updates.start(target=update_handler)
 
+@app.route('/stop', methods=['POST'])
+def stop():
+    pass
+
+@app.route('/status', methods=['GET','HEAD'])
+def status():
+    return flask.jsonify(queue_length = get_queue().count())
 
 if __name__ == '__main__':
     app.run(debug=True)
