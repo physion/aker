@@ -4,12 +4,12 @@ from unittest.mock import MagicMock
 
 import requests
 
-from watcher import Watcher, WatcherException
+from aker import Watcher, WatcherException
 
 
 __copyright__ = 'Copyright (c) 2014. Physion LLC. All rights reserved.'
 
-#TODO mock watcher.account so that we don't actually have to call _db_updates or login
+#TODO mock aker.account so that we don't actually have to call _db_updates or login
 
 class WatcherTest(unittest.TestCase):
 

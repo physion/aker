@@ -4,7 +4,7 @@ import boto.sqs
 from boto.sqs.message import Message
 from flask import g
 
-import watcher
+import aker
 
 
 __copyright__ = 'Copyright (c) 2014. Physion LLC. All rights reserved.'
@@ -44,7 +44,7 @@ def start():
         m.set_body(update)
         get_queue().write(m)
 
-    updates = watcher.Watcher()  #TODO parameters
+    updates = aker.Watcher()  #TODO parameters
     updates.start(target=update_handler)
 
 
