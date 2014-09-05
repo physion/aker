@@ -1,4 +1,3 @@
-import os
 import threading
 import unittest
 from unittest.mock import MagicMock
@@ -63,8 +62,8 @@ class WatcherTest(unittest.TestCase):
 
     def test_should_watch_changes(self):
         watcher = Watcher('http://localhost:5995',
-                          username=os.environ['COUCH_USER'],
-                          password=os.environ['COUCH_PASSWORD'],
+                          username='username',
+                          password='password',
                           account_factory=self.account_factory)
 
         evt = threading.Event()
