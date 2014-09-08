@@ -3,6 +3,7 @@ import unittest
 from unittest.mock import MagicMock
 
 import requests
+import time
 
 from aker import Watcher, WatcherException
 
@@ -58,7 +59,26 @@ class WatcherTest(unittest.TestCase):
             self.assertRaises(WatcherException, lambda: watcher.start())
         finally:
             watcher.stop(timeout_seconds=0.5)
-            self.assertFalse(watcher.thread.is_alive())
+            self.assertFalse(watcher.running)
+
+    def test_should_expose_running_status(self):
+        def pause_and_line():
+            time.sleep(0.1)
+            return b'line'
+
+        self.account.get.return_value.iter_lines.side_effect = pause_and_line
+
+        watcher = Watcher('http://localhost:5995',
+                          username='foo',
+                          password='foopass',
+                          account_factory=self.account_factory)
+
+        self.assertFalse(watcher.running)
+        watcher.start()
+        self.assertTrue(watcher.running)
+        watcher.stop()
+        time.sleep(0.1) #ugh
+        self.assertFalse(watcher.running)
 
     def test_should_watch_changes(self):
         watcher = Watcher('http://localhost:5995',
@@ -79,5 +99,5 @@ class WatcherTest(unittest.TestCase):
             self.account.get.assert_called_with('_db_updates', params={'feed':'continuous'}, stream=True)
         finally:
             watcher.stop(timeout_seconds=1.0)
-            self.assertFalse(watcher.thread.is_alive())
+            self.assertFalse(watcher.running)
 

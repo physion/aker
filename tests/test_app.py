@@ -45,6 +45,4 @@ class TestApp(FlaskTestCase):
 
         rv = self.app.get('/status')
 
-        self.assertDictEqual(json.loads(rv.data.decode('utf-8')), {'queue_length' : queue_size})
-
-    def test_start_starts_watcher(self):
+        self.assertDictEqual(json.loads(rv.data.decode('utf-8')), {'queue_length' : queue_size, 'running' : True})

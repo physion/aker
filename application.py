@@ -21,6 +21,13 @@ REGION = 'us-east-1' # Get the region we're running in
 application = app = flask.Flask(__name__)
 app.config.from_object(__name__)
 
+def _db_updates_handler(update):
+    m = Message()
+    m.set_body(update)
+    get_queue().write(m)
+
+_updates = aker.Watcher()  #TODO parameters
+
 def get_queue():
     queue = getattr(g, '_queue', None)
     if queue is None:
@@ -29,34 +36,21 @@ def get_queue():
     return queue
 
 
+@app.before_first_request
+def start_watcher(*args, **kwargs):
+    _updates.start(target=_db_updates_handler)
+
+
 @app.route('/', methods=['HEAD', 'GET'])
 def index():
     # You can use the context global `request` here
-    return "Couch _db_updates: {} updates in queue".format(get_queue().count())
+    return "Aker!"
 
-
-@app.route('/start', methods=['POST'])
-def start():
-
-    def update_handler(update):
-        m = Message()
-        m.set_body(update)
-        get_queue().write(m)
-
-    app.g
-    updates = aker.Watcher(host=COUCH_HOST,
-                           username=COUCH_USER,
-                           password=COUCH_PASSWORD)  #TODO parameters
-
-    updates.start(target=update_handler)
-
-@app.route('/stop', methods=['POST'])
-def stop():
-    pass
 
 @app.route('/status', methods=['GET','HEAD'])
 def status():
-    return flask.jsonify(queue_length = get_queue().count())
+    return flask.jsonify(queue_length = get_queue().count(),
+                         running = _updates.running)
 
 if __name__ == '__main__':
     app.run(debug=True)

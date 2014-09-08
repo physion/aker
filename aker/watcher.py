@@ -36,6 +36,17 @@ class Watcher:
         self.evt = threading.Event()
         self.thread = None
 
+
+    @property
+    def running(self):
+        """
+        Checks the running status of this watcher
+        :return: True if this watcher is running
+        """
+
+        return not (self.thread is None or not self.thread.is_alive())
+
+
     def start(self, target=None):
         """
         Starts the watcher thread. Each db update is passed to the single-argument target callable
