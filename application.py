@@ -1,5 +1,5 @@
 import os
-import cloudant
+
 import flask
 import boto.sqs
 from boto.sqs.message import Message
@@ -14,13 +14,16 @@ __copyright__ = 'Copyright (c) 2014. Physion LLC. All rights reserved.'
 # AWS EB requires the name application
 application = app = flask.Flask(__name__)
 app.config.from_object(aker.default_settings)
+if 'AKER_CONFIG_PATH' in os.environ:
+    app.config.from_envvar('AKER_CONFIG_PATH')
 
-# Check environment variables an override
+# Check environment variables and override
 config_overrides = ['COUCH_HOST', 'COUCH_USER', 'COUCH_PASSWORD',
                     'DB_UPDATES_SQS_QUEUE', 'SECRET_KEY']
 for k in config_overrides:
     if k in os.environ:
         app.config[k] = os.environ[k]
+
 
 
 def _db_updates_handler(update):
@@ -29,7 +32,9 @@ def _db_updates_handler(update):
     get_queue().write(m)
 
 
-_updates = aker.Watcher()  # TODO parameters
+_updates = aker.Watcher(host=app.config['COUCH_HOST'],
+                        username=app.config['COUCH_USER'],
+                        password=app.config['COUCH_PASSWORD'])
 
 
 def get_queue():

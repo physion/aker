@@ -1,5 +1,5 @@
 # Configuration
-COUCH_HOST = 'https://ovation-io-dev.cloudant.com'
+COUCH_HOST = 'http://localhost:5995'
 COUCH_USER = 'couch-user'
 COUCH_PASSWORD = 'password'
 DB_UPDATES_SQS_QUEUE = 'dev_db_updates'

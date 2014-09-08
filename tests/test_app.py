@@ -22,6 +22,11 @@ class TestApp(FlaskTestCase):
         self.cloudant_account_factory = self.cloudant_patch.start()
         self.cloudant_account = self.cloudant_account_factory.return_value
 
+        # For get('_db_updates')
+        response = MagicMock()
+        response.iter_lines.return_value = [b'line1', b'line2']
+        self.cloudant_account.get.return_value = response
+
     def setUp(self):
         super().setUp()
 
