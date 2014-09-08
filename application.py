@@ -15,6 +15,13 @@ __copyright__ = 'Copyright (c) 2014. Physion LLC. All rights reserved.'
 application = app = flask.Flask(__name__)
 app.config.from_object(aker.default_settings)
 
+# Check environment variables an override
+config_overrides = ['COUCH_HOST', 'COUCH_USER', 'COUCH_PASSWORD',
+                    'DB_UPDATES_SQS_QUEUE', 'SECRET_KEY']
+for k in config_overrides:
+    if k in os.environ:
+        app.config[k] = os.environ[k]
+
 
 def _db_updates_handler(update):
     m = Message()
