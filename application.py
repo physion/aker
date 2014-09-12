@@ -7,7 +7,6 @@ from flask import g
 
 import aker
 
-
 __copyright__ = 'Copyright (c) 2014. Physion LLC. All rights reserved.'
 
 
@@ -70,7 +69,8 @@ def index():
 @app.route('/status', methods=['GET', 'HEAD'])
 def status():
     return flask.jsonify(queue_length=get_queue().count(),
-                         running=_updates.running)
+                         running=_updates.running,
+                         version=aker.__version__)
 
 
 if __name__ == '__main__':
