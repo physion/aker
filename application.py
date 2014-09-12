@@ -2,7 +2,6 @@ import os
 
 import flask
 import boto.sqs
-from boto.sqs.message import Message
 from flask import g
 
 import aker
@@ -24,13 +23,6 @@ for k in config_overrides:
         app.config[k] = os.environ[k]
 
 
-
-def _db_updates_handler(update):
-    m = Message()
-    m.set_body(update)
-    get_queue().write(m)
-
-
 _updates = aker.Watcher(host=app.config['COUCH_HOST'],
                         username=app.config['COUCH_USER'],
                         password=app.config['COUCH_PASSWORD'])
@@ -47,7 +39,7 @@ def get_queue():
 
 @app.before_first_request
 def start_watcher(*args, **kwargs):
-    _updates.start(target=_db_updates_handler)
+    _updates.start(target=aker.handler.db_updates_handler(get_queue()))
 
 
 @app.errorhandler(aker.WatcherException)
