@@ -1,6 +1,7 @@
 import json
 from unittest.mock import patch, MagicMock
 
+import aker
 from aker.testing import FlaskTestCase
 
 
@@ -40,7 +41,6 @@ class TestApp(FlaskTestCase):
         self.cloudant_patch.stop()
 
     def test_index(self):
-        self.sqs_queue.count.return_value = 0
         rv = self.app.get('/')
         self.assertEqual(200, rv._status_code)
 
@@ -50,4 +50,32 @@ class TestApp(FlaskTestCase):
 
         rv = self.app.get('/status')
 
-        self.assertDictEqual(json.loads(rv.data.decode('utf-8')), {'queue_length' : queue_size, 'running' : True})
+        self.assertEqual(json.loads(rv.data.decode('utf-8'))['queue_length'], queue_size)
+
+    def test_status_has_version(self):
+        queue_size = 5
+        self.sqs_queue.count.return_value = queue_size
+
+        rv = self.app.get('/status')
+
+        self.assertEqual(json.loads(rv.data.decode('utf-8'))['version'], aker.__version__)
+
+    def test_status_has_running(self):
+        queue_size = 5
+        self.sqs_queue.count.return_value = queue_size
+
+        rv = self.app.get('/status')
+
+        self.assertTrue('running' in json.loads(rv.data.decode('utf-8')))
+
+    def test_returns_500_if_watcher_not_running(self):
+        import application
+
+        #warm up
+        self.app.get('/')
+
+        application._updates.stop(1)
+        self.assertFalse(application._updates.running)
+
+        rv = self.app.get('/')
+        self.assertEqual(500, rv._status_code)
