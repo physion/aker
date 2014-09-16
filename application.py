@@ -2,13 +2,15 @@ import os
 import logging
 
 from boto.dynamodb2.table import Table
-from boto.dynamodb2.fields import HashKey, RangeKey
+from boto.dynamodb2.fields import HashKey
+from boto.dynamodb2.items import Item
 import flask
 import boto.sqs
 import boto.exception
 from flask import g
 
 import aker
+
 
 __copyright__ = 'Copyright (c) 2014. Physion LLC. All rights reserved.'
 
@@ -83,10 +85,15 @@ def index():
 
 @app.route('/status', methods=['GET', 'HEAD'])
 def status():
+    try:
+        worker = get_last_seq_table().get_item(worker='aker')
+    except boto.exception.JSONResponseError:
+        worker = Item(get_last_seq_table(), data={'worker': 'aker', 'last_seq': '0'})
+
     return flask.jsonify(queue_length=get_queue().count(),
                          running=_updates.running,
                          version=aker.__version__,
-                         last_seq=get_last_seq_table().get_item(worker='aker')['last_seq'])
+                         last_seq=worker['last_seq'])
 
 
 if __name__ == '__main__':

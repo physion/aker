@@ -1,4 +1,5 @@
 from boto.dynamodb2.items import Item
+from boto.exception import JSONResponseError
 import flask
 from boto.sqs.message import Message
 
@@ -38,9 +39,13 @@ def db_updates_handler(queue=None, table=None):
         sent_message = queue.write(m)
 
         if sent_message:
-            worker = table.get_item(worker='aker')
+            try:
+                worker = table.get_item(worker='aker')
+            except JSONResponseError:
+                worker = Item(table, data={'worker': 'aker', 'last_seq': seq})
+
             worker['last_seq'] = seq
-            worker.partial_save()
+            worker.save()
 
     return update_handler
 
