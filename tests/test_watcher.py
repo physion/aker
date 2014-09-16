@@ -1,9 +1,10 @@
 import threading
 import unittest
 from unittest.mock import MagicMock
-
-import requests
 import time
+
+from boto.dynamodb2.table import Table
+import requests
 
 from aker import Watcher, WatcherException
 
@@ -80,7 +81,7 @@ class WatcherTest(unittest.TestCase):
         time.sleep(0.1) #ugh
         self.assertFalse(watcher.running)
 
-    def test_should_watch_changes(self):
+    def test_should_watch_changes_from_start(self):
         watcher = Watcher('http://localhost:5995',
                           username='username',
                           password='password',
@@ -96,7 +97,61 @@ class WatcherTest(unittest.TestCase):
         try:
             TIMEOUT_SECONDS = 0.5
             self.assertTrue(evt.wait(timeout=TIMEOUT_SECONDS))
-            self.account.get.assert_called_with('_db_updates', params={'feed':'continuous'}, stream=True)
+            self.account.get.assert_called_with('_db_updates', params={'feed':'continuous', 'since': '0'}, stream=True)
+        finally:
+            watcher.stop(timeout_seconds=1.0)
+            self.assertFalse(watcher.running)
+
+    def test_should_watch_changes_from_last_seq(self):
+
+        table_mock = MagicMock(spec=Table)
+        last_seq = '123-abcdefghi'
+        table_mock.get_item.return_value = { 'last_seq' : last_seq}
+
+        watcher = Watcher('http://localhost:5995',
+                          username='username',
+                          password='password',
+                          account_factory=self.account_factory,
+                          last_seq_table=table_mock)
+
+        evt = threading.Event()
+
+        def update_handler(update):
+            evt.set()
+
+        watcher.start(target=update_handler)
+
+        try:
+            TIMEOUT_SECONDS = 0.5
+            self.assertTrue(evt.wait(timeout=TIMEOUT_SECONDS))
+            table_mock.get_item.assert_called_with(process='aker', attributes=['last_seq'])
+            self.account.get.assert_called_with('_db_updates', params={'feed':'continuous', 'since':last_seq}, stream=True)
+        finally:
+            watcher.stop(timeout_seconds=1.0)
+            self.assertFalse(watcher.running)
+
+    def test_should_watch_changes_from_start_when_last_seq_empty(self):
+        table_mock = MagicMock(spec=Table)
+        table_mock.get_item.return_value = None
+
+        watcher = Watcher('http://localhost:5995',
+                          username='username',
+                          password='password',
+                          account_factory=self.account_factory,
+                          last_seq_table=table_mock)
+
+        evt = threading.Event()
+
+        def update_handler(update):
+            evt.set()
+
+        watcher.start(target=update_handler)
+
+        try:
+            TIMEOUT_SECONDS = 0.5
+            self.assertTrue(evt.wait(timeout=TIMEOUT_SECONDS))
+            table_mock.get_item.assert_called_with(process='aker', attributes=['last_seq'])
+            self.account.get.assert_called_with('_db_updates', params={'feed':'continuous', 'since':'0'}, stream=True)
         finally:
             watcher.stop(timeout_seconds=1.0)
             self.assertFalse(watcher.running)

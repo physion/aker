@@ -28,11 +28,19 @@ class Watcher:
     Watches a CouchDB _db_updates feed
     """
 
+    PROCESS = 'aker'
+    LAST_SEQ = 'last_seq'
+
     # noinspection PyProtectedMember
-    def __init__(self, host='http://localhost:5995', username=None, password=None, account_factory=cloudant.Account):
+    def __init__(self, host='http://localhost:5995',
+                 username=None,
+                 password=None,
+                 account_factory=cloudant.Account,
+                 last_seq_table=None):
 
 
         self.account = account_factory(host, async=False)
+        self.last_seq_table = last_seq_table
 
         if username is None:
             username = os.environ.get('COUCH_USER', '')
@@ -75,7 +83,10 @@ class Watcher:
         event = self.evt
 
         def watch_updates():
-            r = self.account.get('_db_updates', params={'feed': 'continuous'}, stream=True)
+            item = self.last_seq_table.get_item(process=self.PROCESS, attributes=[self.LAST_SEQ]) if self.last_seq_table else None
+            last_seq = item[self.LAST_SEQ] if item else '0'
+
+            r = self.account.get('_db_updates', params={'feed': 'continuous', 'since': last_seq}, stream=True)
             r.raise_for_status()
             for update in r.iter_lines():
                 if target is not None:
