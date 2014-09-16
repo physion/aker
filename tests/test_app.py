@@ -1,6 +1,8 @@
 import json
 from unittest.mock import patch, MagicMock
 
+import boto.exception
+
 import aker
 from aker.testing import FlaskTestCase
 
@@ -33,6 +35,7 @@ class TestApp(FlaskTestCase):
         self.dynamo_table_factory = self.dynamo_table_mock.start()
 
         self.dynamo_table = self.dynamo_table_factory.return_value
+        self.dynamo_table_factory.create.return_value = self.dynamo_table
 
         # Happy path: table exists
         self.last_seq = {'worker': 'aker', 'last_seq': '123'}
@@ -98,3 +101,18 @@ class TestApp(FlaskTestCase):
         rv = self.app.get('/status')
 
         self.assertEqual(json.loads(rv.data.decode('utf-8'))['last_seq'], self.last_seq['last_seq'])
+
+    def test_creates_dynamodb_table(self):
+        self.dynamo_table.describe.side_effect = boto.exception.JSONResponseError(400, 'boom!')
+        self.app.get('/')
+
+        self.assertEqual(1, self.dynamo_table_factory.create.call_count)
+        args = self.dynamo_table_factory.create.call_args
+        self.assertEqual(aker.default_settings.UNDERWORLD_TABLE, args[0][0])
+        self.assertDictEqual(args[1]['throughput'], {
+            'read': 5,
+            'write': 5,
+        })
+        self.assertIn('schema', args[1])
+
+
