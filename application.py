@@ -89,8 +89,6 @@ def status():
     try:
         worker = get_last_seq_table().get_item(worker='aker')
         last_seq = worker['last_seq']
-    except boto.exception.JSONResponseError:
-        last_seq = "0"
     except ItemNotFound:
         last_seq = "0"
 

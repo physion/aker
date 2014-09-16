@@ -45,8 +45,6 @@ def db_updates_handler(queue=None, table=None):
                 worker['last_seq'] = str(seq)
             except ItemNotFound:
                 worker = Item(table, data={'worker': 'aker', 'last_seq': str(seq)})
-            except JSONResponseError:
-                worker = Item(table, data={'worker': 'aker', 'last_seq': str(seq)})
 
             worker.save()
 
