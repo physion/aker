@@ -1,10 +1,11 @@
 import unittest
+
 import six
 
-if six.PY3:
-    from unittest.mock import patch, MagicMock
+
+if six.PY3: \
 else:
-    from mock import patch, MagicMock
+    from mock import MagicMock
 
 import flask
 from boto.sqs.message import Message
@@ -43,7 +44,7 @@ class UpdateHandlerTest(unittest.TestCase):
         handler(self.update_line)
 
         aker_item.__setitem__.assert_called_with('last_seq', update["seq"])
-        aker_item.partial_save.assert_called_with()
+        aker_item.save.assert_called_with()
 
     def test_does_not_write_seq_if_write_fails(self):
         sqs_queue = MagicMock()

@@ -41,10 +41,10 @@ def db_updates_handler(queue=None, table=None):
         if sent_message:
             try:
                 worker = table.get_item(worker='aker')
+                worker['last_seq'] = str(seq)
             except JSONResponseError:
-                worker = Item(table, data={'worker': 'aker', 'last_seq': seq})
+                worker = Item(table, data={'worker': 'aker', 'last_seq': str(seq)})
 
-            worker['last_seq'] = seq
             worker.save()
 
     return update_handler

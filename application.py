@@ -87,13 +87,14 @@ def index():
 def status():
     try:
         worker = get_last_seq_table().get_item(worker='aker')
+        last_seq = worker['last_seq']
     except boto.exception.JSONResponseError:
-        worker = Item(get_last_seq_table(), data={'worker': 'aker', 'last_seq': '0'})
+        last_seq = "0"
 
     return flask.jsonify(queue_length=get_queue().count(),
                          running=_updates.running,
                          version=aker.__version__,
-                         last_seq=worker['last_seq'])
+                         last_seq=last_seq)
 
 
 if __name__ == '__main__':
