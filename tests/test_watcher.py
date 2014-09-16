@@ -1,6 +1,12 @@
 import threading
 import unittest
-from unittest.mock import MagicMock
+import six
+
+if six.PY3:
+    from unittest.mock import patch, MagicMock
+else:
+    from mock import patch, MagicMock
+
 import time
 
 from boto.dynamodb2.table import Table
