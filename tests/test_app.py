@@ -47,14 +47,20 @@ class TestApp(FlaskTestCase):
         self.dynamo_table.get_item.return_value = self.last_seq
 
     def setUp(self):
-        super().setUp()
+        if six.PY3:
+            super().setUp()
+        else:
+            super(TestApp, self).setUp()
 
         self._patch_sqs()
         self._patch_cloudant()
         self._patch_dynamodb()
 
     def tearDown(self):
-        super().tearDown()
+        if six.PY3:
+            super().tearDown()
+        else:
+            super(TestApp, self).tearDown()
 
         self.sqs_connect_patch.stop()
         self.cloudant_patch.stop()
