@@ -1,3 +1,4 @@
+from boto.dynamodb2.exceptions import ItemNotFound
 from boto.dynamodb2.items import Item
 from boto.exception import JSONResponseError
 import flask
@@ -42,6 +43,8 @@ def db_updates_handler(queue=None, table=None):
             try:
                 worker = table.get_item(worker='aker')
                 worker['last_seq'] = str(seq)
+            except ItemNotFound:
+                worker = Item(table, data={'worker': 'aker', 'last_seq': str(seq)})
             except JSONResponseError:
                 worker = Item(table, data={'worker': 'aker', 'last_seq': str(seq)})
 
