@@ -1,13 +1,13 @@
 import unittest
-
 import six
 
-
-if six.PY3: \
+if six.PY3:
+    from unittest.mock import patch, MagicMock
 else:
-    from mock import MagicMock
+    from mock import patch, MagicMock
 
 import flask
+from boto.sqs.message import Message
 
 from aker.handler import db_updates_handler
 
