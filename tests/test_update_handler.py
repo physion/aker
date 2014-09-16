@@ -28,7 +28,7 @@ class UpdateHandlerTest(unittest.TestCase):
         handler(self.update_line)
 
         self.assertEqual(1, sqs_queue.write.call_count)
-        self.assertEqual(flask.json.loads(self.update_line),
+        self.assertEqual(self.update_line,
                          sqs_queue.write.call_args[0][0]._body)
 
 
