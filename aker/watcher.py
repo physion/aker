@@ -1,5 +1,6 @@
 import threading
 import os
+import logging
 
 import cloudant
 
@@ -37,8 +38,8 @@ class Watcher:
                  password=None,
                  account_factory=cloudant.Account):
 
-
         self.account = account_factory(host, async=False)
+        self.last_seq_table = None
 
         if username is None:
             username = os.environ.get('COUCH_USER', '')
@@ -47,8 +48,10 @@ class Watcher:
             password = os.environ.get('COUCH_PASSWORD', '')
 
         if host.startswith("http://localhost"):
+            logging.info("Configuring Watcher for Authentication auth")
             self.account._session.auth = (username, password)
         else:
+            logging.info("Configuring Watcher for session auth")
             r = self.account.login(username, password)
             r.raise_for_status()
 
@@ -77,16 +80,19 @@ class Watcher:
         """
 
         if self.thread is not None:
+            logging.error("Attempted to start a Watcher that is already running")
             raise WatcherException("Cannot start a Watcher more than once")
 
         self.last_seq_table = last_seq_table
 
-
         event = self.evt
 
         def watch_updates():
-            item = self.last_seq_table.get_item(worker=self.PROCESS, attributes=[self.LAST_SEQ]) if self.last_seq_table else None
+            item = self.last_seq_table.get_item(worker=self.PROCESS,
+                                                attributes=[self.LAST_SEQ]) if self.last_seq_table else None
             last_seq = item[self.LAST_SEQ] if item else '0'
+
+            logging.info("Getting _db_updates since {}".format(last_seq))
 
             r = self.account.get('_db_updates', params={'feed': 'continuous', 'since': last_seq}, stream=True)
             r.raise_for_status()
@@ -95,8 +101,7 @@ class Watcher:
                     try:
                         target(update.decode('utf-8'))
                     finally:
-                        pass # Update last_seq
-
+                        pass  # Update last_seq
 
                 if event.is_set():
                     break

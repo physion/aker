@@ -1,4 +1,5 @@
 import os
+import logging
 
 from boto.dynamodb2.table import Table
 from boto.dynamodb2.fields import HashKey, RangeKey
@@ -56,12 +57,14 @@ def get_last_seq_table():
     return table
 
 
+logging.info("Configuring Watcher for {}".format(app.config['COUCH_HOST']))
 _updates = aker.Watcher(host=app.config['COUCH_HOST'],
                         username=app.config['COUCH_USER'],
                         password=app.config['COUCH_PASSWORD'])
 
 @app.before_first_request
 def start_watcher(*args, **kwargs):
+    logging.info("Starting updates watcher...")
     _updates.start(target=aker.handler.db_updates_handler(queue=get_queue(), table=get_last_seq_table()))
 
 
