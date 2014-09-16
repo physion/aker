@@ -38,7 +38,7 @@ def db_updates_handler(queue=None, table=None):
         sent_message = queue.write(m)
 
         if sent_message:
-            worker = table.get_item(worker='aker', last_seq="0")
+            worker = table.get_item(worker='aker')
             worker['last_seq'] = seq
             worker.partial_save()
 

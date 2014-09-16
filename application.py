@@ -44,10 +44,7 @@ def get_last_seq_table():
             t.describe()
         except boto.exception.JSONResponseError:
             t = boto.dynamodb2.table.Table.create(app.config['UNDERWORLD_TABLE'],
-                                                  schema=[
-                                                      HashKey('worker'),
-                                                      RangeKey('last_seq')
-                                                  ],
+                                                  schema=[ HashKey('worker') ],
                                                   throughput={
                                                       'read': 5,
                                                       'write': 5,
