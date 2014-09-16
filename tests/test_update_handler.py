@@ -49,3 +49,6 @@ class UpdateHandlerTest(unittest.TestCase):
         handler(self.update_line)
 
         self.assertFalse(table.called)
+
+    def test_uses_conditional_write(self):
+        pass

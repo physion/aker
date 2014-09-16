@@ -111,20 +111,19 @@ class WatcherTest(unittest.TestCase):
         watcher = Watcher('http://localhost:5995',
                           username='username',
                           password='password',
-                          account_factory=self.account_factory,
-                          last_seq_table=table_mock)
+                          account_factory=self.account_factory)
 
         evt = threading.Event()
 
         def update_handler(update):
             evt.set()
 
-        watcher.start(target=update_handler)
+        watcher.start(target=update_handler, last_seq_table=table_mock)
 
         try:
             TIMEOUT_SECONDS = 0.5
             self.assertTrue(evt.wait(timeout=TIMEOUT_SECONDS))
-            table_mock.get_item.assert_called_with(process='aker', attributes=['last_seq'])
+            table_mock.get_item.assert_called_with(worker='aker', attributes=['last_seq'])
             self.account.get.assert_called_with('_db_updates', params={'feed':'continuous', 'since':last_seq}, stream=True)
         finally:
             watcher.stop(timeout_seconds=1.0)
@@ -137,22 +136,22 @@ class WatcherTest(unittest.TestCase):
         watcher = Watcher('http://localhost:5995',
                           username='username',
                           password='password',
-                          account_factory=self.account_factory,
-                          last_seq_table=table_mock)
+                          account_factory=self.account_factory)
 
         evt = threading.Event()
 
         def update_handler(update):
             evt.set()
 
-        watcher.start(target=update_handler)
+        watcher.start(target=update_handler, last_seq_table=table_mock)
 
         try:
             TIMEOUT_SECONDS = 0.5
             self.assertTrue(evt.wait(timeout=TIMEOUT_SECONDS))
-            table_mock.get_item.assert_called_with(process='aker', attributes=['last_seq'])
+            table_mock.get_item.assert_called_with(worker='aker', attributes=['last_seq'])
             self.account.get.assert_called_with('_db_updates', params={'feed':'continuous', 'since':'0'}, stream=True)
         finally:
             watcher.stop(timeout_seconds=1.0)
             self.assertFalse(watcher.running)
+
 

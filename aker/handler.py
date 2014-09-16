@@ -4,7 +4,7 @@ from boto.sqs.message import Message
 __copyright__ = 'Copyright (c) 2014. Physion LLC. All rights reserved.'
 
 
-def db_updates_handler(queue, table):
+def db_updates_handler(queue=None, table=None):
     """
     Makes an update handler for the given SQS queue
 
