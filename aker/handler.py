@@ -36,7 +36,7 @@ def db_updates_handler(queue=None, table=None):
         seq = update['seq']
 
         m = Message()
-        m.set_body(line)
+        m.set_body(update['dbname'])
         sent_message = queue.write(m)
 
         if sent_message:
