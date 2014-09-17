@@ -36,7 +36,8 @@ def db_updates_handler(queue=None, table=None):
         seq = update['seq']
 
         m = Message()
-        m.set_body(update['dbname'])
+        msg_body = {'database': update['dbname']}
+        m.set_body(flask.json.dumps(msg_body))
         sent_message = queue.write(m)
 
         if sent_message:

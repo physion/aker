@@ -16,7 +16,7 @@ __copyright__ = 'Copyright (c) 2014. Physion LLC. All rights reserved.'
 
 class UpdateHandlerTest(unittest.TestCase):
 
-    update_line = """{"dbname": "documentationchangescontinuous1documentation94fb157e-d35e-4b2d-b14c-c2eeadfdec71", "type": "created", "account": "testy006-admin", "seq": "666-g1AAAAJAeJyN0EkKwjAUgOE4gN5CxZWbksakSVcWL6IZEakVtC5c6U30JnoTvUnNIEJdVDcvEMLHy58DAPqrjgJDJeR2pzMlcFTqfXmEMIlkvj0oXpRRocvcvmxzIAZVVa1XbT7f2IteShg2nDph9BFi2ECIoZ1i9lagV7hJEkxQfQ_WhGQOWbyRzCNUC0K5rCO0CVk65BQQAUBr7B2CoITQ1B3U4BRdO8HZHpa6uIWi8KtExQx_t4l_Stcg3ZyUegmbFFPJ_u8ToHuAHg6aeAgRMkUp_79RgJ4B8rGJh6DRtjVbvwCDzK2w"}"""
+    update_line = """{"dbname": "db-94fb157e-d35e-4b2d-b14c-c2eeadfdec71", "type": "created", "account": "testy006-admin", "seq": "666-g1AAAAJAeJyN0EkKwjAUgOE4gN5CxZWbksakSVcWL6IZEakVtC5c6U30JnoTvUnNIEJdVDcvEMLHy58DAPqrjgJDJeR2pzMlcFTqfXmEMIlkvj0oXpRRocvcvmxzIAZVVa1XbT7f2IteShg2nDph9BFi2ECIoZ1i9lagV7hJEkxQfQ_WhGQOWbyRzCNUC0K5rCO0CVk65BQQAUBr7B2CoITQ1B3U4BRdO8HZHpa6uIWi8KtExQx_t4l_Stcg3ZyUegmbFFPJ_u8ToHuAHg6aeAgRMkUp_79RgJ4B8rGJh6DRtjVbvwCDzK2w"}"""
 
     def test_writes_db_name_message(self):
         sqs_queue = MagicMock()
@@ -28,8 +28,8 @@ class UpdateHandlerTest(unittest.TestCase):
         handler(self.update_line)
 
         self.assertEqual(1, sqs_queue.write.call_count)
-        self.assertEqual(db_name,
-                         sqs_queue.write.call_args[0][0]._body)
+        self.assertDictEqual({'database': db_name},
+                            flask.json.loads(sqs_queue.write.call_args[0][0]._body))
 
     def test_writes_seq_to_dynamo(self):
         sqs_queue = MagicMock()
