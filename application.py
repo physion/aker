@@ -1,16 +1,15 @@
 import os
 import logging
-from boto.dynamodb2.exceptions import ItemNotFound
 
-from boto.dynamodb2.table import Table
-from boto.dynamodb2.fields import HashKey
-from boto.dynamodb2.items import Item
+import cloudant
 import flask
 import boto.sqs
 import boto.exception
 from flask import g
+from requests import HTTPError
 
 import aker
+from aker.couch import login
 
 
 __copyright__ = 'Copyright (c) 2014. Physion LLC. All rights reserved.'
@@ -24,7 +23,7 @@ if 'AKER_CONFIG_PATH' in os.environ:
 
 # Check environment variables and override
 config_overrides = ['COUCH_HOST', 'COUCH_USER', 'COUCH_PASSWORD',
-                    'DB_UPDATES_SQS_QUEUE', 'SECRET_KEY']
+                    'DB_UPDATES_SQS_QUEUE', 'SECRET_KEY', 'UNDERWORLD_DATABASE']
 for k in config_overrides:
     if k in os.environ:
         app.config[k] = os.environ[k]
@@ -39,22 +38,25 @@ def get_queue():
             app.config['DB_UPDATES_SQS_QUEUE'])
     return queue
 
-def get_last_seq_table():
-    table = getattr(app, 'aker_last_seq_table', None)
-    if table is None:
-        t = boto.dynamodb2.table.Table(app.config['UNDERWORLD_TABLE'])
-        try:
-            t.describe()
-        except boto.exception.JSONResponseError:
-            t = boto.dynamodb2.table.Table.create(app.config['UNDERWORLD_TABLE'],
-                                                  schema=[ HashKey('worker') ],
-                                                  throughput={
-                                                      'read': 5,
-                                                      'write': 5,
-                                                  })
-        table = app.aker_last_seq_table = t
+def get_database(account_factory=None):
+    if account_factory is None:
+        account_factory = cloudant.Account
 
-    return table
+    database = getattr(g, app.config['UNDERWORLD_DATABASE'], None)
+    if database is None:
+        account = login(host=app.config['COUCH_HOST'],
+                        username=app.config['COUCH_USER'],
+                        password=app.config['COUCH_PASSWORD'],
+                        async=False,
+                        account_factory=account_factory)
+
+        database = g.underworld_database = account.database('underworld')
+        try:
+            database.get().raise_for_status()
+        except HTTPError:
+            database.put().raise_for_status()
+
+        return database
 
 
 logging.info("Configuring Watcher for {}".format(app.config['COUCH_HOST']))
@@ -65,7 +67,7 @@ _updates = aker.Watcher(host=app.config['COUCH_HOST'],
 @app.before_first_request
 def start_watcher(*args, **kwargs):
     logging.info("Starting updates watcher...")
-    _updates.start(target=aker.handler.db_updates_handler(queue=get_queue(), table=get_last_seq_table()))
+    _updates.start(target=aker.handler.db_updates_handler(queue=get_queue(), database=get_database()))
 
 
 @app.errorhandler(aker.WatcherException)
@@ -87,9 +89,13 @@ def index():
 @app.route('/status', methods=['GET', 'HEAD'])
 def status():
     try:
-        worker = get_last_seq_table().get_item(worker='aker')
-        last_seq = worker['last_seq']
-    except ItemNotFound:
+        database = get_database()
+        doc = database.document('aker')
+        r = doc.get()
+        r.raise_for_status()
+        worker_state = r.json()
+        last_seq = worker_state['last_seq']
+    except:
         last_seq = "0"
 
     return flask.jsonify(queue_length=get_queue().count(),

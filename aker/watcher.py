@@ -1,8 +1,10 @@
 import threading
-import os
 import logging
 
 import cloudant
+from requests import HTTPError
+
+from aker.couch import login
 
 
 __copyright__ = 'Copyright (c) 2014. Physion LLC. All rights reserved.'
@@ -36,24 +38,17 @@ class Watcher:
     def __init__(self, host='http://localhost:5995',
                  username=None,
                  password=None,
-                 account_factory=cloudant.Account):
+                 account_factory=cloudant.Account,
+                 since="0"):
 
-        self.account = account_factory(host, async=False)
-        self.last_seq_table = None
+        self.account = login(host=host,
+                             username=username,
+                             password=password,
+                             account_factory=account_factory,
+                             async=False)
 
-        if username is None:
-            username = os.environ.get('COUCH_USER', '')
+        self.since_seq = since
 
-        if password is None:
-            password = os.environ.get('COUCH_PASSWORD', '')
-
-        if host.startswith("http://localhost"):
-            logging.info("Configuring Watcher for Authentication auth")
-            self.account._session.auth = (username, password)
-        else:
-            logging.info("Configuring Watcher for session auth")
-            r = self.account.login(username, password)
-            r.raise_for_status()
 
         self.evt = threading.Event()
         self.thread = None
@@ -69,13 +64,12 @@ class Watcher:
         return not (self.thread is None or not self.thread.is_alive())
 
 
-    def start(self, target=None, last_seq_table=None):
+    def start(self, target=None):
         """
         Starts the watcher thread. Each db update is passed to the single-argument target callable
         as a string.
 
         :param target: single-argument callable
-        :param last_seq_table: dynamodb2.table.Table for storing last_seq information
         :return:
         """
 
@@ -83,25 +77,21 @@ class Watcher:
             logging.error("Attempted to start a Watcher that is already running")
             raise WatcherException("Cannot start a Watcher more than once")
 
-        self.last_seq_table = last_seq_table
 
         event = self.evt
 
         def watch_updates():
-            item = self.last_seq_table.get_item(worker=self.PROCESS,
-                                                attributes=[self.LAST_SEQ]) if self.last_seq_table else None
-            last_seq = item[self.LAST_SEQ] if item else '0'
 
-            logging.info("Getting _db_updates since {}".format(last_seq))
+            logging.info("Getting _db_updates since {}".format(self.since_seq))
 
-            r = self.account.get('_db_updates', params={'feed': 'continuous', 'since': last_seq}, stream=True)
+            r = self.account.get('_db_updates', params={'feed': 'continuous', 'since': self.since_seq}, stream=True)
             r.raise_for_status()
             for update in r.iter_lines():
                 if target is not None:
                     try:
                         target(update.decode('utf-8'))
-                    finally:
-                        pass  # Update last_seq
+                    except HTTPError as ex:
+                        logging.error("Unable to process update", ex)
 
                 if event.is_set():
                     break

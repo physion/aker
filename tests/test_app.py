@@ -1,12 +1,13 @@
 import json
+
+from requests import HTTPError
 import six
+
 
 if six.PY3:
     from unittest.mock import patch, MagicMock
 else:
     from mock import patch, MagicMock
-
-import boto.exception
 
 import aker
 from aker.testing import FlaskTestCase
@@ -35,16 +36,16 @@ class TestApp(FlaskTestCase):
         response.iter_lines.return_value = [b'line1', b'line2']
         self.cloudant_account.get.return_value = response
 
-    def _patch_dynamodb(self):
-        self.dynamo_table_mock = patch('boto.dynamodb2.table.Table')
-        self.dynamo_table_factory = self.dynamo_table_mock.start()
 
-        self.dynamo_table = self.dynamo_table_factory.return_value
-        self.dynamo_table_factory.create.return_value = self.dynamo_table
+        # For underword['aker']
+        self.underworld_db = self.cloudant_account.database.return_value
+        doc = self.underworld_db.document.return_value
+        self.last_seq = {'last_seq': '123-abcdef'}
 
-        # Happy path: table exists
-        self.last_seq = {'worker': 'aker', 'last_seq': '123'}
-        self.dynamo_table.get_item.return_value = self.last_seq
+        r = doc.get.return_value
+        r.json.return_value = self.last_seq
+
+
 
     def setUp(self):
         if six.PY3:
@@ -54,7 +55,6 @@ class TestApp(FlaskTestCase):
 
         self._patch_sqs()
         self._patch_cloudant()
-        self._patch_dynamodb()
 
     def tearDown(self):
         if six.PY3:
@@ -64,7 +64,6 @@ class TestApp(FlaskTestCase):
 
         self.sqs_connect_patch.stop()
         self.cloudant_patch.stop()
-        self.dynamo_table_mock.stop()
 
     def test_index(self):
         rv = self.app.get('/')
@@ -113,17 +112,14 @@ class TestApp(FlaskTestCase):
 
         self.assertEqual(json.loads(rv.data.decode('utf-8'))['last_seq'], self.last_seq['last_seq'])
 
-    def test_creates_dynamodb_table(self):
-        self.dynamo_table.describe.side_effect = boto.exception.JSONResponseError(400, 'boom!')
-        self.app.get('/')
+    def test_creates_database(self):
+        import application
 
-        self.assertEqual(1, self.dynamo_table_factory.create.call_count)
-        args = self.dynamo_table_factory.create.call_args
-        self.assertEqual(aker.default_settings.UNDERWORLD_TABLE, args[0][0])
-        self.assertDictEqual(args[1]['throughput'], {
-            'read': 5,
-            'write': 5,
-        })
-        self.assertIn('schema', args[1])
+        self.underworld_db.get.return_value.raise_for_status.side_effect = HTTPError("Boom")
+
+        with application.app.test_request_context('/'):
+            application.get_database(account_factory=self.cloudant_account_factory)
+
+            self.underworld_db.put.assert_called_with()
 
 

@@ -1,13 +1,14 @@
 import unittest
+
 import six
 
+
 if six.PY3:
-    from unittest.mock import patch, MagicMock
+    from unittest.mock import MagicMock
 else:
-    from mock import patch, MagicMock
+    from mock import MagicMock
 
 import flask
-from boto.sqs.message import Message
 
 from aker.handler import db_updates_handler
 
@@ -31,28 +32,28 @@ class UpdateHandlerTest(unittest.TestCase):
         self.assertDictEqual({'database': db_name},
                             flask.json.loads(sqs_queue.write.call_args[0][0]._body))
 
-    def test_writes_seq_to_dynamo(self):
+    def test_writes_seq_to_couch(self):
         sqs_queue = MagicMock()
-        table = MagicMock()
-        aker_item = MagicMock()
-        table.get_item.return_value = aker_item
+        database = MagicMock()
+        doc = database.document.return_value = MagicMock()
+        response = doc.get.return_value
+        response.json.return_value = {}
+
         update = flask.json.loads(self.update_line)
 
-        handler = db_updates_handler(sqs_queue, table)
+        handler = db_updates_handler(sqs_queue, database)
         handler(self.update_line)
 
-        aker_item.__setitem__.assert_called_with('last_seq', update["seq"])
-        aker_item.save.assert_called_with()
+        database.document.assert_called_with('aker')
+        doc.put.assert_called_with({'last_seq': update['seq']})
 
     def test_does_not_write_seq_if_write_fails(self):
         sqs_queue = MagicMock()
-        table = MagicMock()
+        db = MagicMock()
         sqs_queue.write.return_value = None
 
-        handler = db_updates_handler(sqs_queue, table)
+        handler = db_updates_handler(sqs_queue, db)
         handler(self.update_line)
 
-        self.assertFalse(table.called)
+        self.assertFalse(db.called)
 
-    def test_uses_conditional_write(self):
-        pass
