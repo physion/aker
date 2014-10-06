@@ -55,19 +55,6 @@ class WatcherTest(unittest.TestCase):
 
         self.assertEqual(('username', 'password'), self.account._session.auth)
 
-    def test_should_throw_exception_starting_more_than_once(self):
-
-        watcher = Watcher('http://localhost:5995',
-                          username='foo',
-                          password='foopass',
-                          account_factory=self.account_factory)
-
-        watcher.start()
-        try:
-            self.assertRaises(WatcherException, lambda: watcher.start())
-        finally:
-            watcher.stop(timeout_seconds=0.5)
-            self.assertFalse(watcher.running)
 
     def test_should_expose_running_status(self):
         def pause_and_line():

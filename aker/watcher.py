@@ -73,9 +73,9 @@ class Watcher:
         :return:
         """
 
-        if self.thread is not None:
+        if self.thread is not None and self.thread.is_alive():
             logging.error("Attempted to start a Watcher that is already running")
-            raise WatcherException("Cannot start a Watcher more than once")
+            return
 
 
         event = self.evt
