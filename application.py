@@ -90,8 +90,8 @@ def handle_watcher_exception(error):
 @app.route('/', methods=['HEAD', 'GET'])
 def index():
 
-    logging.info(str(os.environ))
-    logging.info(str(app.config))
+    logging.info("os.environ " + str(os.environ))
+    logging.info("app.config " + str(app.config))
 
     # You can use the context global `request` here
     if not _updates.running:
