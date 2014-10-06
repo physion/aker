@@ -15,6 +15,7 @@ from aker.couch import login
 __copyright__ = 'Copyright (c) 2014. Physion LLC. All rights reserved.'
 
 
+
 # AWS EB requires the name application
 application = app = flask.Flask(__name__)
 app.config.from_object(aker.default_settings)
@@ -28,6 +29,10 @@ for k in config_overrides:
     if k in os.environ:
         app.config[k] = os.environ[k]
 
+
+# Configure logging
+if not app.config['TESTING']:
+    logging.basicConfig(filename='/opt/python/log/aker.log',level=logging.DEBUG)
 
 
 def get_queue():
