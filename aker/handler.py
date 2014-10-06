@@ -1,6 +1,6 @@
-from boto.dynamodb2.exceptions import ItemNotFound
 import flask
 from boto.sqs.message import Message
+from requests import HTTPError
 
 __copyright__ = 'Copyright (c) 2014. Physion LLC. All rights reserved.'
 
@@ -42,12 +42,15 @@ def db_updates_handler(queue=None, database=None):
             doc = database.document('aker')
 
             try:
-                worker_state = doc.get().json()
+                r = doc.get()
+                r.raise_for_status()
+                worker_state = r.json()
                 worker_state['last_seq'] = str(seq)
-            except ItemNotFound:
+            except HTTPError:
                 worker_state = {'last_seq': str(seq)}
 
-            doc.put(worker_state).raise_for_status()
+
+            doc.put(params=worker_state).raise_for_status()
 
     return update_handler
 
