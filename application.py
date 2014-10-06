@@ -57,9 +57,9 @@ def get_database(account_factory=None):
                         account_factory=account_factory)
 
         database = g.underworld_database = account.database(app.config['UNDERWORLD_DATABASE'])
-        r = database.get()
-        if r.status_code == requests.codes.NOT_FOUND:
-            database.put().raise_for_status()
+        # r = database.get()
+        # if r.status_code == requests.codes.NOT_FOUND:
+        #     database.put().raise_for_status()
 
         return database
 
