@@ -37,6 +37,7 @@ logging.debug("Override app config: " + str(app.config))
 
 for k in config_overrides:
     if k in os.environ:
+        logging.debug("Environment {} = {}".format(k, os.environ[k]))
         app.config[k] = os.environ[k]
 
 logging.debug("Final app config: " + str(app.config))
@@ -89,9 +90,6 @@ def handle_watcher_exception(error):
 
 @app.route('/', methods=['HEAD', 'GET'])
 def index():
-
-    logging.info("os.environ " + str(os.environ))
-    logging.info("app.config " + str(app.config))
 
     # You can use the context global `request` here
     if not _updates.running:
