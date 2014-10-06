@@ -1,3 +1,4 @@
+import logging
 import flask
 from boto.sqs.message import Message
 import requests
@@ -32,6 +33,8 @@ def db_updates_handler(queue=None, database=None):
         """
         update = flask.json.loads(line)
         seq = update['seq']
+
+        logging.debug("Update received for database {dbname}".format(**update))
 
         m = Message()
         msg_body = {'database': update['dbname']}
