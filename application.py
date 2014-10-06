@@ -34,7 +34,7 @@ config_overrides = ['COUCH_HOST', 'COUCH_USER', 'COUCH_PASSWORD',
                     'DB_UPDATES_SQS_QUEUE', 'SECRET_KEY', 'UNDERWORLD_DATABASE']
 
 
-logging.debug("OS ENVIRON {}".format(str(os.environ)))
+logging.debug("COUCH_HOST: {}".format(os.environ['COUCH_HOST']))
 
 for k in config_overrides:
     if k in os.environ:
