@@ -34,8 +34,7 @@ application.debug = True
 
 # Configure logging
 if not app.config['TESTING']:
-    pass
-    #logging.basicConfig(filename='/opt/python/log/aker.log',level=logging.DEBUG)
+    logging.basicConfig(level=logging.DEBUG)
 
 
 def get_queue():
