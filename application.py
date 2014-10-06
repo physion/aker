@@ -92,6 +92,8 @@ def handle_watcher_exception(error):
 @app.route('/', methods=['HEAD', 'GET'])
 def index():
 
+    logging.debug("{COUCH_HOST} {COUCH_USER}".format(**os.environ))
+
     # You can use the context global `request` here
     if not _updates.running:
         logging.info("(Re)-starting updates watcher...")
