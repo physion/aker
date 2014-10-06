@@ -25,6 +25,7 @@ if 'AKER_CONFIG_PATH' in os.environ:
 # Check environment variables and override
 config_overrides = ['COUCH_HOST', 'COUCH_USER', 'COUCH_PASSWORD',
                     'DB_UPDATES_SQS_QUEUE', 'SECRET_KEY', 'UNDERWORLD_DATABASE']
+logging.info(str(os.environ))
 for k in config_overrides:
     if k in os.environ:
         app.config[k] = os.environ[k]
@@ -33,8 +34,7 @@ for k in config_overrides:
 application.debug = True
 
 # Configure logging
-if not app.config['TESTING']:
-    logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.DEBUG)
 
 
 def get_queue():
