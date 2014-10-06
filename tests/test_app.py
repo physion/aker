@@ -66,6 +66,9 @@ class TestApp(FlaskTestCase):
         self.cloudant_patch.stop()
 
     def test_index(self):
+        # Warm up
+        self.app.get('/')
+
         rv = self.app.get('/')
         self.assertEqual(200, rv._status_code)
 
