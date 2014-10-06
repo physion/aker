@@ -30,6 +30,8 @@ for k in config_overrides:
         app.config[k] = os.environ[k]
 
 
+application.debug = True
+
 # Configure logging
 if not app.config['TESTING']:
     pass
