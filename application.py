@@ -32,7 +32,8 @@ for k in config_overrides:
 
 # Configure logging
 if not app.config['TESTING']:
-    logging.basicConfig(filename='/opt/python/log/aker.log',level=logging.DEBUG)
+    pass
+    #logging.basicConfig(filename='/opt/python/log/aker.log',level=logging.DEBUG)
 
 
 def get_queue():
