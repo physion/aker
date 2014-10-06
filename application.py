@@ -33,8 +33,6 @@ if 'AKER_CONFIG_PATH' in os.environ:
 config_overrides = ['COUCH_HOST', 'COUCH_USER', 'COUCH_PASSWORD',
                     'DB_UPDATES_SQS_QUEUE', 'SECRET_KEY', 'UNDERWORLD_DATABASE']
 
-logging.debug(str(os.environ))
-
 for k in config_overrides:
     if k in os.environ:
         app.config[k] = os.environ[k]
@@ -88,6 +86,10 @@ def handle_watcher_exception(error):
 
 @app.route('/', methods=['HEAD', 'GET'])
 def index():
+
+    logging.info(str(os.environ))
+    logging.info(str(app.config))
+
     # You can use the context global `request` here
     if not _updates.running:
         logging.info("(Re)-starting updates watcher...")
