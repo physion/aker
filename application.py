@@ -50,7 +50,7 @@ def get_database(account_factory=None):
                         async=False,
                         account_factory=account_factory)
 
-        database = g.underworld_database = account.database('underworld')
+        database = g.underworld_database = account.database(app.config['UNDERWORLD_DATABASE'])
         try:
             database.get().raise_for_status()
         except HTTPError:
