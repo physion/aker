@@ -7,5 +7,5 @@ boto==2.32.1
 certifi==14.05.14
 cloudant==0.5.9
 itsdangerous==0.24
-requests==2.4.0
+requests==2.4.2
 requests-futures==0.9.4
