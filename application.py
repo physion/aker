@@ -16,9 +16,16 @@ __copyright__ = 'Copyright (c) 2014. Physion LLC. All rights reserved.'
 
 
 
+# Configure logging
+logging.basicConfig(level=logging.DEBUG)
+
 # AWS EB requires the name application
 application = app = flask.Flask(__name__)
+application.debug = True
+
 app.config.from_object(aker.default_settings)
+
+
 if 'AKER_CONFIG_PATH' in os.environ:
     app.config.from_envvar('AKER_CONFIG_PATH')
 
@@ -31,12 +38,6 @@ logging.debug(str(os.environ))
 for k in config_overrides:
     if k in os.environ:
         app.config[k] = os.environ[k]
-
-
-application.debug = True
-
-# Configure logging
-logging.basicConfig(level=logging.DEBUG)
 
 
 def get_queue():
