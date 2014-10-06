@@ -6,7 +6,7 @@ import flask
 import boto.sqs
 import boto.exception
 from flask import g
-from requests import HTTPError
+import requests
 
 import aker
 from aker.couch import login
@@ -57,9 +57,8 @@ def get_database(account_factory=None):
                         account_factory=account_factory)
 
         database = g.underworld_database = account.database(app.config['UNDERWORLD_DATABASE'])
-        try:
-            database.get().raise_for_status()
-        except HTTPError:
+        r = database.get()
+        if r.status_code == requests.codes.NOT_FOUND:
             database.put().raise_for_status()
 
         return database

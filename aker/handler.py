@@ -1,6 +1,6 @@
 import flask
 from boto.sqs.message import Message
-from requests import HTTPError
+import requests
 
 __copyright__ = 'Copyright (c) 2014. Physion LLC. All rights reserved.'
 
@@ -41,13 +41,12 @@ def db_updates_handler(queue=None, database=None):
         if sent_message:
             doc = database.document('aker')
 
-            try:
-                r = doc.get()
-                r.raise_for_status()
+            r = doc.get()
+            if r.status_code == requests.codes.NOT_FOUND:
+                worker_state = {'last_seq': str(seq)}
+            else:
                 worker_state = r.json()
                 worker_state['last_seq'] = str(seq)
-            except HTTPError:
-                worker_state = {'last_seq': str(seq)}
 
 
             doc.put(params=worker_state).raise_for_status()
