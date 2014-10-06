@@ -38,7 +38,8 @@ for k in config_overrides:
         logging.debug("Environment {} = {}".format(k, os.environ[k]))
         app.config[k] = os.environ[k]
 
-app.config['COUCH_HOST'] = "https://{}.cloudant.com".format(app.config['COUCH_USER'])
+if app.config['COUCH_USER'].startswith('ovation-io'):
+    app.config['COUCH_HOST'] = "https://{}.cloudant.com".format(app.config['COUCH_USER'])
 
 logging.debug("Final app config: " + str(app.config))
 
