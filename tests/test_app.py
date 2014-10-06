@@ -93,7 +93,7 @@ class TestApp(FlaskTestCase):
 
         self.assertTrue('running' in json.loads(rv.data.decode('utf-8')))
 
-    def test_restart_if_watcher_not_running(self):
+    def test_should_throw_500_if_watcher_not_running(self):
         import application
 
         # warm up
@@ -103,7 +103,7 @@ class TestApp(FlaskTestCase):
         self.assertFalse(application._updates.running)
 
         rv = self.app.get('/')
-        self.assertEqual(requests.codes.OK, rv._status_code)
+        self.assertEqual(500, rv._status_code)
 
     def test_status_has_last_seq(self):
         self.sqs_queue.count.return_value = 0
