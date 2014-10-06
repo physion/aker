@@ -17,7 +17,7 @@ __copyright__ = 'Copyright (c) 2014. Physion LLC. All rights reserved.'
 
 
 # Configure logging
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.INFO)
 
 # AWS EB requires the name application
 application = app = flask.Flask(__name__)
