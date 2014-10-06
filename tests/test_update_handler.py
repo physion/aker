@@ -45,7 +45,7 @@ class UpdateHandlerTest(unittest.TestCase):
         handler(self.update_line)
 
         database.document.assert_called_with('aker')
-        doc.put.assert_called_with({'last_seq': update['seq']})
+        doc.put.assert_called_with(params={'last_seq': update['seq']})
 
     def test_does_not_write_seq_if_write_fails(self):
         sqs_queue = MagicMock()
