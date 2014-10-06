@@ -1,6 +1,5 @@
 import json
 
-from requests import HTTPError
 import six
 
 
@@ -115,7 +114,7 @@ class TestApp(FlaskTestCase):
     def test_creates_database(self):
         import application
 
-        self.underworld_db.get.return_value.raise_for_status.side_effect = HTTPError("Boom")
+        self.underworld_db.get.return_value.status_code = 404
 
         with application.app.test_request_context('/'):
             application.get_database(account_factory=self.cloudant_account_factory)
