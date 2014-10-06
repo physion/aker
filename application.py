@@ -33,13 +33,12 @@ if 'AKER_CONFIG_PATH' in os.environ:
 config_overrides = ['COUCH_HOST', 'COUCH_USER', 'COUCH_PASSWORD',
                     'DB_UPDATES_SQS_QUEUE', 'SECRET_KEY', 'UNDERWORLD_DATABASE']
 
-
-logging.debug("COUCH_HOST: {}".format(os.environ['COUCH_HOST']))
-
 for k in config_overrides:
     if k in os.environ:
         logging.debug("Environment {} = {}".format(k, os.environ[k]))
         app.config[k] = os.environ[k]
+
+app.config['COUCH_HOST'] = "https://{}.cloudant.com".format(app.config['COUCH_USER'])
 
 logging.debug("Final app config: " + str(app.config))
 
@@ -91,8 +90,6 @@ def handle_watcher_exception(error):
 
 @app.route('/', methods=['HEAD', 'GET'])
 def index():
-
-    logging.debug("{COUCH_HOST} {COUCH_USER}".format(**os.environ))
 
     # You can use the context global `request` here
     if not _updates.running:
