@@ -69,10 +69,10 @@ _updates = aker.Watcher(host=app.config['COUCH_HOST'],
                         username=app.config['COUCH_USER'],
                         password=app.config['COUCH_PASSWORD'])
 
-# @app.before_first_request
-# def start_watcher(*args, **kwargs):
-#     logging.info("Starting updates watcher...")
-#     _updates.start(target=aker.handler.db_updates_handler(queue=get_queue(), database=get_database()))
+@app.before_first_request
+def start_watcher(*args, **kwargs):
+    logging.info("Starting updates watcher...")
+    _updates.start(target=aker.handler.db_updates_handler(queue=get_queue(), database=get_database()))
 
 
 @app.errorhandler(aker.WatcherException)
@@ -86,11 +86,7 @@ def handle_watcher_exception(error):
 def index():
     # You can use the context global `request` here
     if not _updates.running:
-        logging.info("Starting updates watcher...")
-        _updates.start(target=aker.handler.db_updates_handler(queue=get_queue(), database=get_database()))
-
-        if not _updates.running:
-            raise aker.WatcherException("Updates watcher not running", status_code=500, payload={'error': 'Updates watcher not running'})
+        raise aker.WatcherException("Updates watcher not running", status_code=500, payload={'error': 'Updates watcher not running'})
 
 
     return "Aker!"
