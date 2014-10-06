@@ -25,7 +25,9 @@ if 'AKER_CONFIG_PATH' in os.environ:
 # Check environment variables and override
 config_overrides = ['COUCH_HOST', 'COUCH_USER', 'COUCH_PASSWORD',
                     'DB_UPDATES_SQS_QUEUE', 'SECRET_KEY', 'UNDERWORLD_DATABASE']
-logging.info(str(os.environ))
+
+logging.debug(str(os.environ))
+
 for k in config_overrides:
     if k in os.environ:
         app.config[k] = os.environ[k]
