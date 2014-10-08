@@ -28,6 +28,11 @@ def db_updates_handler(queue=None, database=None):
 
         Sends the update to the SQS specified by `get_queue` and then records the seq in Couch.
 
+        SQS message contains {'database': update['dbname'} as a Base64-encoded JSON string. E.g.
+            {"database": "team-90979670-2a11-0132-bf70-22000a7bab2e"}
+             => '{"database": "team-90979670-2a11-0132-bf70-22000a7bab2e"}'
+             => 'eyJkYXRhYmFzZSI6ICJ0ZWFtLTkwOTc5NjcwLTJhMTEtMDEzMi1iZjcwLTIyMDAwYTdiYWIyZSJ9'
+
         :param line: _db_updates line
         :return: None
         """
@@ -36,9 +41,8 @@ def db_updates_handler(queue=None, database=None):
 
         logging.debug("Update received for database {dbname}".format(**update))
 
-        m = Message()
         msg_body = {'database': update['dbname']}
-        m.set_body(flask.json.dumps(msg_body))
+        m = Message(body=flask.json.dumps(msg_body))
         sent_message = queue.write(m)
 
         if sent_message:
