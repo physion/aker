@@ -28,10 +28,9 @@ def db_updates_handler(queue=None, database=None):
 
         Sends the update to the SQS specified by `get_queue` and then records the seq in Couch.
 
-        SQS message contains {'database': update['dbname'} as a Base64-encoded JSON string. E.g.
+        SQS message contains {'database': update['dbname'} as a JSON-encoded string. E.g.
             {"database": "team-90979670-2a11-0132-bf70-22000a7bab2e"}
              => '{"database": "team-90979670-2a11-0132-bf70-22000a7bab2e"}'
-             => 'eyJkYXRhYmFzZSI6ICJ0ZWFtLTkwOTc5NjcwLTJhMTEtMDEzMi1iZjcwLTIyMDAwYTdiYWIyZSJ9'
 
         :param line: _db_updates line
         :return: None
