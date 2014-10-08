@@ -2,8 +2,6 @@ import unittest
 
 import six
 
-from base64 import b64decode
-
 
 if six.PY3:
     from unittest.mock import MagicMock
@@ -33,7 +31,7 @@ class UpdateHandlerTest(unittest.TestCase):
         self.assertEqual(1, sqs_queue.write.call_count)
         self.assertDictEqual({'database': db_name},
                             flask.json.loads(
-                                b64decode(sqs_queue.write.call_args[0][0].get_body_encoded())))
+                                sqs_queue.write.call_args[0][0].get_body_encoded()))
 
     def test_writes_seq_to_couch(self):
         sqs_queue = MagicMock()

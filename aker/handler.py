@@ -1,6 +1,6 @@
 import logging
 import flask
-from boto.sqs.message import Message
+from boto.sqs.message import RawMessage
 import requests
 
 __copyright__ = 'Copyright (c) 2014. Physion LLC. All rights reserved.'
@@ -42,7 +42,7 @@ def db_updates_handler(queue=None, database=None):
         logging.debug("Update received for database {dbname}".format(**update))
 
         msg_body = {'database': update['dbname']}
-        m = Message(body=flask.json.dumps(msg_body))
+        m = RawMessage(body=flask.json.dumps(msg_body))
         sent_message = queue.write(m)
 
         if sent_message:
