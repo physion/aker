@@ -36,7 +36,7 @@ for k in config_overrides:
     if k in os.environ:
         app.config[k] = os.environ[k]
 
-if app.config['COUCH_USER'].startswith('ovation-io'):
+if 'COUCH_HOST' not in os.environ and app.config['COUCH_USER'].startswith('ovation-io'):
     app.config['COUCH_HOST'] = "https://{}.cloudant.com".format(app.config['COUCH_USER'])
 
 
