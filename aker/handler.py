@@ -11,9 +11,11 @@ def db_updates_handler(queue=None, database=None):
     Makes an update handler for the given SQS queue
 
     :param queue: SQS queue
-    :param database: DynamoDB table for last sequence
+    :param database: CouchDB database for underworld state
     :return: _db_updates_handler function
     """
+
+    underworld_db_name = database.get().json()['db_name']
 
     def update_handler(line):
         """
@@ -40,22 +42,23 @@ def db_updates_handler(queue=None, database=None):
 
         logging.debug("Update received for database {dbname}".format(**update))
 
-        msg_body = {'database': update['dbname']}
-        m = RawMessage(body=flask.json.dumps(msg_body))
-        sent_message = queue.write(m)
+        if not update['dbname'] == underworld_db_name:
+            msg_body = {'database': update['dbname']}
+            m = RawMessage(body=flask.json.dumps(msg_body))
+            sent_message = queue.write(m)
 
-        if sent_message:
-            doc = database.document('aker')
+            if sent_message:
+                doc = database.document('aker')
 
-            r = doc.get()
-            if r.status_code == requests.codes.NOT_FOUND:
-                worker_state = {'last_seq': str(seq)}
-            else:
-                worker_state = r.json()
-                worker_state['last_seq'] = str(seq)
+                r = doc.get()
+                if r.status_code == requests.codes.NOT_FOUND:
+                    worker_state = {'last_seq': str(seq)}
+                else:
+                    worker_state = r.json()
+                    worker_state['last_seq'] = str(seq)
 
 
-            doc.put(params=worker_state).raise_for_status()
+                doc.put(params=worker_state).raise_for_status()
 
     return update_handler
 
