@@ -82,7 +82,7 @@ class Watcher:
 
         def watch_updates():
 
-            logging.info("Getting _db_updates since {}".format(self.since_seq))
+            logging.info("[Aker] Getting _db_updates since {}".format(self.since_seq))
 
             r = self.account.get('_db_updates', params={'feed': 'continuous', 'since': self.since_seq}, stream=True)
 
@@ -91,10 +91,10 @@ class Watcher:
                 if target is not None:
                     try:
                         u = update.decode('utf-8')
-                        logging.info("Processing update {}".format(u))
+                        logging.info("[Aker] Processing update {}".format(u))
                         target(u)
                     except HTTPError as ex:
-                        logging.error("Unable to process update", ex)
+                        logging.error("[Aker] Unable to process update", ex)
 
                 if event.is_set():
                     break

@@ -40,13 +40,13 @@ def db_updates_handler(queue=None, database=None):
         update = flask.json.loads(line)
         seq = update['seq']
 
-        logging.info("Update received for database {dbname}".format(**update))
+        logging.info("[Aker] Update received for database {dbname}".format(**update))
 
         if not update['dbname'] == underworld_db_name and not update['dbname']=='_replicator':
             msg_body = {'database': update['dbname']}
             m = RawMessage(body=flask.json.dumps(msg_body))
 
-            logging.info("Sending message to queue {}".format(m))
+            logging.info("[Aker] Sending message to queue {}".format(m))
             sent_message = queue.write(m)
 
             if sent_message:
