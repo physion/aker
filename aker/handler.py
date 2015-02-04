@@ -40,11 +40,13 @@ def db_updates_handler(queue=None, database=None):
         update = flask.json.loads(line)
         seq = update['seq']
 
-        logging.debug("Update received for database {dbname}".format(**update))
+        logging.info("Update received for database {dbname}".format(**update))
 
         if not update['dbname'] == underworld_db_name:
             msg_body = {'database': update['dbname']}
             m = RawMessage(body=flask.json.dumps(msg_body))
+
+            logging.info("Sending message to queue {}", m)
             sent_message = queue.write(m)
 
             if sent_message:
