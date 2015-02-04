@@ -91,7 +91,7 @@ class Watcher:
                 if target is not None:
                     try:
                         u = update.decode('utf-8')
-                        logging.info("Processing update {}", u)
+                        logging.info("Processing update {}".format(u))
                         target(u)
                     except HTTPError as ex:
                         logging.error("Unable to process update", ex)
