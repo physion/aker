@@ -84,6 +84,8 @@ class Watcher:
 
             logging.info("Getting _db_updates since {}".format(self.since_seq))
 
+            r = self.account.get('_db_updates', params={'feed': 'continuous', 'since': self.since_seq}, stream=True)
+
             r.raise_for_status()
             for update in r.iter_lines():
                 if target is not None:
