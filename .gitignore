@@ -57,3 +57,5 @@ docs/_build/
 .idea
 
 .ipynb_checkpoints/scratch_pad-checkpoint.ipynb
+
+dynamodb_local*
