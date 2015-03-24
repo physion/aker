@@ -42,7 +42,10 @@ def db_updates_handler(queue=None, database=None):
 
         logging.info("[Aker] Update received for database {dbname}".format(**update))
 
-        if (update['dbname'] != underworld_db_name) and (update['dbname']!='_replicator') and (not update['dbname'].startswith('team-')):
+        if (update['dbname'] != underworld_db_name) and \
+                (update['dbname']!='_replicator') and \
+                (not update['dbname'].startswith('team-')) and \
+                (update['dbname'] != underworld_db_name + "_dev"):
             msg_body = {'database': update['dbname']}
             m = RawMessage(body=flask.json.dumps(msg_body))
 
