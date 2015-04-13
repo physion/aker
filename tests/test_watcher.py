@@ -121,6 +121,31 @@ class WatcherTest(unittest.TestCase):
             watcher.stop(timeout_seconds=1.0)
             self.assertFalse(watcher.running)
 
+
+    def test_should_watch_changes_from_last_seq2(self):
+
+        last_seq = '123-abcdefghi'
+
+        watcher = Watcher('http://localhost:5995',
+                          username='username',
+                          password='password',
+                          account_factory=self.account_factory)
+
+        evt = threading.Event()
+
+        def update_handler(update):
+            evt.set()
+
+        watcher.start(target=update_handler, since=last_seq)
+
+        try:
+            TIMEOUT_SECONDS = 0.5
+            self.assertTrue(evt.wait(timeout=TIMEOUT_SECONDS))
+            self.account.get.assert_called_with('_db_updates', params={'feed':'continuous', 'since':last_seq}, stream=True)
+        finally:
+            watcher.stop(timeout_seconds=1.0)
+            self.assertFalse(watcher.running)
+
     def test_should_watch_changes_from_start_when_last_seq_empty(self):
         watcher = Watcher('http://localhost:5995',
                           username='username',

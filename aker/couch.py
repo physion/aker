@@ -27,3 +27,15 @@ def login(host='http://localhost:5995',
         r.raise_for_status()
 
     return account
+
+
+def last_seq(underworld, db='aker'):
+    idx = underworld.design('state').view('last-seq')
+    r = idx.get(params={'keys': [db], 'group': True})
+    r.raise_for_status()
+
+    result = r.json()['rows']
+    if len(result) > 0:
+        return result[0]['value']
+
+    return None

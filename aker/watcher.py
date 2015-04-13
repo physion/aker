@@ -64,7 +64,7 @@ class Watcher:
         return not (self.thread is None or not self.thread.is_alive())
 
 
-    def start(self, target=None):
+    def start(self, target=None, since=None):
         """
         Starts the watcher thread. Each db update is passed to the single-argument target callable
         as a string.
@@ -72,6 +72,8 @@ class Watcher:
         :param target: single-argument callable
         :return:
         """
+
+        since_seq = since or self.since_seq
 
         if self.thread is not None and self.thread.is_alive():
             logging.error("Attempted to start a Watcher that is already running")
@@ -82,9 +84,9 @@ class Watcher:
 
         def watch_updates():
 
-            logging.info("[Aker] Getting _db_updates since {}".format(self.since_seq))
+            logging.info("[Aker] Getting _db_updates since {}".format(since_seq))
 
-            r = self.account.get('_db_updates', params={'feed': 'continuous', 'since': self.since_seq}, stream=True)
+            r = self.account.get('_db_updates', params={'feed': 'continuous', 'since': since_seq}, stream=True)
 
             r.raise_for_status()
             for update in r.iter_lines():

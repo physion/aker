@@ -2,6 +2,7 @@ import logging
 import flask
 from boto.sqs.message import RawMessage
 import requests
+import uuid
 
 __copyright__ = 'Copyright (c) 2014. Physion LLC. All rights reserved.'
 
@@ -53,15 +54,11 @@ def db_updates_handler(queue=None, database=None):
             sent_message = queue.write(m)
 
             if sent_message:
-                doc = database.document('aker')
+                doc = database.document('aker-' + str(uuid.uuid4()))
 
-                r = doc.get()
-                if r.status_code == requests.codes.NOT_FOUND:
-                    worker_state = {'last_seq': str(seq)}
-                else:
-                    worker_state = r.json()
-                    worker_state['last_seq'] = str(seq)
-
+                worker_state = {'last_seq': str(seq),
+                                'type': 'database-state',
+                                'database': 'aker'}
 
                 doc.put(params=worker_state).raise_for_status()
 

@@ -91,8 +91,20 @@ def index():
 
     # You can use the context global `request` here
     if not _updates.running:
+        db = get_database()
+        idx = db.design("state").view('last-seq')
+        r = idx.get(params={'key': 'aker', 'reduce': True})
+        r.raise_for_status()
+
+        result = r.json()['rows']
+        if len(result) > 0:
+            last_seq = result[0]['value']
+        else:
+            last_seq = None
+
         logging.info("(Re)-starting updates watcher...")
-        _updates.start(target=aker.handler.db_updates_handler(queue=get_queue(), database=get_database()))
+        _updates.start(target=aker.handler.db_updates_handler(queue=get_queue(), database=db),
+                       since=last_seq)
 
         raise aker.WatcherException("Updates watcher not running", status_code=500, payload={'error': 'Updates watcher not running'})
 

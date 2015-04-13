@@ -4,9 +4,9 @@ import six
 
 
 if six.PY3:
-    from unittest.mock import MagicMock
+    from unittest.mock import MagicMock, ANY
 else:
-    from mock import MagicMock
+    from mock import MagicMock, ANY
 
 import flask
 
@@ -45,8 +45,11 @@ class UpdateHandlerTest(unittest.TestCase):
         handler = db_updates_handler(sqs_queue, database)
         handler(self.update_line)
 
-        database.document.assert_called_with('aker')
-        doc.put.assert_called_with(params={'last_seq': update['seq']})
+        assert database.document.call_count > 0
+        assert database.document.call_args[0][0].startswith('aker')
+        doc.put.assert_called_with(params={'last_seq': update['seq'],
+                                           'type': 'database-state',
+                                           'database': 'aker'})
 
     def test_does_not_write_seq_if_write_fails(self):
         sqs_queue = MagicMock()
