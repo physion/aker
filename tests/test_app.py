@@ -39,11 +39,12 @@ class TestApp(FlaskTestCase):
 
         # For underword['aker']
         self.underworld_db = self.cloudant_account.database.return_value
-        doc = self.underworld_db.document.return_value
-        self.last_seq = {'last_seq': '123-abcdef'}
+        ddoc = self.underworld_db.design.return_value
+        idx = ddoc.view.return_value
+        self.last_seq = 123
+        response = idx.get.return_value = MagicMock()
+        response.json.return_value = {'rows': [{'key': 'aker', 'value': self.last_seq}]}
 
-        r = doc.get.return_value
-        r.json.return_value = self.last_seq
 
 
 
@@ -113,7 +114,7 @@ class TestApp(FlaskTestCase):
 
         rv = self.app.get('/status')
 
-        self.assertEqual(json.loads(rv.data.decode('utf-8'))['last_seq'], self.last_seq['last_seq'])
+        self.assertEqual(json.loads(rv.data.decode('utf-8'))['last_seq'], self.last_seq)
 
     def test_creates_database(self):
         import application

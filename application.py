@@ -9,6 +9,7 @@ from flask import g
 import requests
 
 import aker
+import aker.couch
 from aker.couch import login
 
 
@@ -92,15 +93,7 @@ def index():
     # You can use the context global `request` here
     if not _updates.running:
         db = get_database()
-        idx = db.design("state").view('last-seq')
-        r = idx.get(params={'key': 'aker', 'reduce': True})
-        r.raise_for_status()
-
-        result = r.json()['rows']
-        if len(result) > 0:
-            last_seq = result[0]['value']
-        else:
-            last_seq = None
+        last_seq = aker.couch.last_seq(db, 'aker')
 
         logging.info("(Re)-starting updates watcher...")
         _updates.start(target=aker.handler.db_updates_handler(queue=get_queue(), database=db),
@@ -114,20 +107,11 @@ def index():
 
 @app.route('/status', methods=['GET', 'HEAD'])
 def status():
-    try:
-        database = get_database()
-        doc = database.document('aker')
-        r = doc.get()
-        r.raise_for_status()
-        worker_state = r.json()
-        last_seq = worker_state['last_seq']
-    except:
-        last_seq = "0"
 
     return flask.jsonify(queue_length=get_queue().count(),
                          running=_updates.running,
                          version=aker.__version__,
-                         last_seq=last_seq)
+                         last_seq=aker.couch.last_seq(get_database(), 'aker'))
 
 
 if __name__ == '__main__':
