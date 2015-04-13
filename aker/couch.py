@@ -31,13 +31,12 @@ def login(host='http://localhost:5995',
 
 def last_seq(underworld, db='aker'):
     idx = underworld.design('state').view('last-seq')
-    r = idx.get(params={'keys': [db], 'group': True})
+    r = idx.get(params={'startkey': [db], 'endkey':[db,{}], 'limit':1})
     r.raise_for_status()
 
     result = r.json()['rows']
     if len(result) > 0:
-        seq = result[0]['value']
-        assert len(seq) == 2, "Unexpected result format"
-        return seq[1]
+        return result[0]['value']
+
 
     return None

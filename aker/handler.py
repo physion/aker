@@ -1,13 +1,13 @@
 import logging
 import flask
 from boto.sqs.message import RawMessage
-import requests
 import uuid
+from time import time
 
 __copyright__ = 'Copyright (c) 2014. Physion LLC. All rights reserved.'
 
 
-def db_updates_handler(queue=None, database=None):
+def db_updates_handler(queue=None, database=None, timestamp=time):
     """
     Makes an update handler for the given SQS queue
 
@@ -58,7 +58,8 @@ def db_updates_handler(queue=None, database=None):
 
                 worker_state = {'last_seq': str(seq),
                                 'type': 'database-state',
-                                'database': 'aker'}
+                                'database': 'aker',
+                                'timestamp': timestamp()}
 
                 doc.put(params=worker_state).raise_for_status()
 

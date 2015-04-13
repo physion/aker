@@ -2,6 +2,7 @@ import json
 import requests
 
 import six
+import time
 
 
 if six.PY3:
@@ -42,8 +43,12 @@ class TestApp(FlaskTestCase):
         ddoc = self.underworld_db.design.return_value
         idx = ddoc.view.return_value
         self.last_seq = 123
+
         response = idx.get.return_value = MagicMock()
-        response.json.return_value = {'rows': [{'key': 'aker', 'value': [self.last_seq,self.last_seq]}]}
+        response.json.return_value = {'offset': 0,
+                                      'rows': [{'key': ['aker', time.time()],
+                                                'value': self.last_seq}],
+                                      'total_rows': 100}
 
 
 

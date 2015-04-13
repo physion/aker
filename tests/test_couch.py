@@ -1,5 +1,5 @@
-import json
 import six
+import time
 
 if six.PY3:
     from unittest.mock import patch, MagicMock
@@ -22,9 +22,12 @@ class TestApp(FlaskTestCase):
         last_seq = 123
         full_seq = str(last_seq) + "-abc"
         response = idx.get.return_value = MagicMock()
-        response.json.return_value = {'rows': [{'key': 'aker', 'value': [last_seq, full_seq]}]}
+        response.json.return_value = {'offset': 0,
+                                      'rows': [{'key': ['aker', time.time()],
+                                                'value': full_seq}],
+                                      'total_rows': 100}
 
         r = couch.last_seq(db)
 
         self.assertEqual(full_seq, r)
-        idx.get.assert_called_with(params={'keys': ['aker'], 'group': True})
+        idx.get.assert_called_with(params={'startkey': ["aker"], 'endkey':["aker",{}], 'limit':1})

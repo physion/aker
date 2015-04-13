@@ -1,3 +1,4 @@
+import time
 import unittest
 
 import six
@@ -39,17 +40,20 @@ class UpdateHandlerTest(unittest.TestCase):
         doc = database.document.return_value = MagicMock()
         response = doc.get.return_value
         response.json.return_value = {}
+        ts = time.time()
+        timestamp = MagicMock(return_value=ts)
 
         update = flask.json.loads(self.update_line)
 
-        handler = db_updates_handler(sqs_queue, database)
+        handler = db_updates_handler(sqs_queue, database, timestamp=timestamp)
         handler(self.update_line)
 
         assert database.document.call_count > 0
         assert database.document.call_args[0][0].startswith('aker')
         doc.put.assert_called_with(params={'last_seq': update['seq'],
                                            'type': 'database-state',
-                                           'database': 'aker'})
+                                           'database': 'aker',
+                                           'timestamp': ts})
 
     def test_does_not_write_seq_if_write_fails(self):
         sqs_queue = MagicMock()
