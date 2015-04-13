@@ -30,4 +30,7 @@ class TestApp(FlaskTestCase):
         r = couch.last_seq(db)
 
         self.assertEqual(full_seq, r)
-        idx.get.assert_called_with(params={'startkey': ["aker"], 'endkey':["aker",{}], 'limit':1})
+        idx.get.assert_called_with(params={'startkey': ["aker", {}],
+                                           'endkey':["aker"],
+                                           'descending': True,
+                                           'limit':1})

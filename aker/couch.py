@@ -31,7 +31,10 @@ def login(host='http://localhost:5995',
 
 def last_seq(underworld, db='aker'):
     idx = underworld.design('state').view('last-seq')
-    r = idx.get(params={'startkey': [db], 'endkey':[db,{}], 'limit':1})
+    r = idx.get(params={'startkey': [db, {}],
+                        'endkey':[db],
+                        'descending': True,
+                        'limit':1})
     r.raise_for_status()
 
     result = r.json()['rows']
