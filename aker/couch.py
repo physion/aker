@@ -36,6 +36,8 @@ def last_seq(underworld, db='aker'):
 
     result = r.json()['rows']
     if len(result) > 0:
-        return result[0]['value']
+        seq = result[0]['value']
+        assert len(seq) == 2, "Unexpected result format"
+        return seq[1]
 
     return None

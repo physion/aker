@@ -43,7 +43,7 @@ class TestApp(FlaskTestCase):
         idx = ddoc.view.return_value
         self.last_seq = 123
         response = idx.get.return_value = MagicMock()
-        response.json.return_value = {'rows': [{'key': 'aker', 'value': self.last_seq}]}
+        response.json.return_value = {'rows': [{'key': 'aker', 'value': [self.last_seq,self.last_seq]}]}
 
 
 

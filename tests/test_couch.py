@@ -20,10 +20,11 @@ class TestApp(FlaskTestCase):
         ddoc = db.design.return_value
         idx = ddoc.view.return_value
         last_seq = 123
+        full_seq = str(last_seq) + "-abc"
         response = idx.get.return_value = MagicMock()
-        response.json.return_value = {'rows': [{'key': 'aker', 'value': last_seq}]}
+        response.json.return_value = {'rows': [{'key': 'aker', 'value': [last_seq, full_seq]}]}
 
         r = couch.last_seq(db)
 
-        self.assertEqual(123, r)
+        self.assertEqual(full_seq, r)
         idx.get.assert_called_with(params={'keys': ['aker'], 'group': True})
