@@ -7,6 +7,7 @@ import boto.sqs
 import boto.exception
 from flask import g
 import requests
+import raygun4py.middleware.flask
 
 import aker
 import aker.couch
@@ -40,7 +41,7 @@ if 'COUCH_HOST' not in os.environ and app.config['COUCH_USER'].startswith('ovati
     app.config['COUCH_HOST'] = "https://{}.cloudant.com".format(app.config['COUCH_USER'])
 
 
-flask.Provider(app, app.config['RAYGUN_API_KEY']).attach()
+raygun4py.middleware.flask.Provider(app, app.config['RAYGUN_API_KEY']).attach()
 
 def get_queue():
     queue = getattr(g, 'aker_queue', None)
