@@ -22,7 +22,6 @@ logging.basicConfig(level=logging.INFO)
 
 # AWS EB requires the name application
 application = app = flask.Flask(__name__)
-
 app.config.from_object(aker.default_settings)
 
 
@@ -40,6 +39,8 @@ for k in config_overrides:
 if 'COUCH_HOST' not in os.environ and app.config['COUCH_USER'].startswith('ovation-io'):
     app.config['COUCH_HOST'] = "https://{}.cloudant.com".format(app.config['COUCH_USER'])
 
+
+flask.Provider(app, app.config['RAYGUN_API_KEY']).attach()
 
 def get_queue():
     queue = getattr(g, 'aker_queue', None)

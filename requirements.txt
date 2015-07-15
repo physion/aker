@@ -9,3 +9,4 @@ cloudant==0.5.9
 itsdangerous==0.24
 requests==2.4.2
 requests-futures==0.9.4
+raygun4py==3.0.2
